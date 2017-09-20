@@ -5,7 +5,7 @@
 # @File    : ModelDict.py.py
 # @Software: PyCharm
 import importlib
-
+import json
 import sys
 
 BASE_TYPE_LIST = [int, unicode, str, bool, tuple, float]
@@ -38,28 +38,28 @@ jj = {
 
 j = [
     {
-    "a": 'is a ',
-    "b": [
-        {
+        "a": 'is a ',
+        "b": [
+            {
+                "b1": 'is b1',
+                "b2": 3,
+                "b3": True,
+                "d": [2, 3, 5]
+            },
+            {
+                "b1": 'is b1',
+                "b2": 3,
+                "b3": True,
+                "d": [2, 3, 5, 889]
+            }
+        ],
+        "c": {
             "b1": 'is b1',
             "b2": 3,
-            "b3": True,
-            "d": [2, 3, 5]
+            "b3": True
         },
-        {
-            "b1": 'is b1',
-            "b2": 3,
-            "b3": True,
-            "d": [2, 3, 5, 889]
-        }
-    ],
-    "c": {
-        "b1": 'is b1',
-        "b2": 3,
-        "b3": True
+        "cc": 'dd'
     },
-    "cc": 'dd'
-},
     {
         "a": 'is a ',
         "b": [
@@ -137,6 +137,40 @@ class A(object):
 class ModelError(Exception):
     pass
 
+
+def toModel(data, clsType):
+    """
+    将dict、json转成model
+    :rtype: object
+    """
+    if isinstance(data, basestring):  # json
+        data = toDict(data)
+    return dict2Model(data, clsType)
+
+
+def toDict(data):
+    """
+    将model，json转成dict或者list
+    :rtype: list[Any] | dict[str,Any]
+    """
+    if isinstance(data, basestring):  # json
+        return json.loads(data)
+    else:  # model
+        return model2Dict(data)
+
+
+def toJson(data):
+    """
+    将model，dict，list转成json
+    :rtype: json
+    """
+    if type(data) in [list, dict]:  # dict
+        data = json.loads(data)
+    elif isinstance(data, object):  # model
+        data = toJson(model2Dict(data))
+    return data
+
+
 def dict2Model(data, clsType=None, key=None):
     """
 
@@ -152,7 +186,7 @@ def dict2Model(data, clsType=None, key=None):
                 tmpCls = getattr(clsType(), key)[0]
             else:  # [baseType]
                 return data
-        else:   # [dict]
+        else:  # [dict]
             tmpCls = clsType
         return [dict2Model(item, tmpCls, None) for item in data]
     elif isinstance(data, dict):
@@ -183,9 +217,9 @@ if __name__ == '__main__':
     # print getattr(A(), 'c')
     # print A().__dict__
     # print A.__dict__
-    a = dict2Model(j, A, None)
-    # a = dict2Model(ll, C, None)
-    b = model2Dict(a)
+    a = toModel(j, A)
+    # a = dict2Model(ll, C)
+    b = toDict(a)
     print '****'
     print a
     print b
