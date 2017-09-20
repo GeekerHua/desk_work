@@ -18,7 +18,7 @@ ll = {
 }
 
 jj = {
-    "a": 'is a ',
+    # "a": 'is a ',
     "b": [
         {
             "b1": 'is b1',
@@ -131,7 +131,7 @@ class A(object):
     def __init__(self):
         self.a = None
         self.b = [C]
-        self.c = C
+        # self.c = C
 
 
 class ModelError(Exception):
@@ -171,9 +171,9 @@ def toJson(data):
     return data
 
 
+    # TODO : 处理类对应哪个属性缺失的情况。
 def dict2Model(data, clsType=None, key=None):
     """
-
     :type data: object | list[Any]| dict[str, str|object]
     :type clsType: class
     :rtype: A | list[A]
@@ -190,10 +190,13 @@ def dict2Model(data, clsType=None, key=None):
             tmpCls = clsType
         return [dict2Model(item, tmpCls, None) for item in data]
     elif isinstance(data, dict):
+        # if key and hasattr(clsType(), key):
+
         tmpCls = getattr(clsType(), key) if key else clsType
         m = tmpCls()
         for key, v in data.iteritems():
-            setattr(m, key, dict2Model(v, tmpCls, key))
+            if key in m.__dict__:
+                setattr(m, key, dict2Model(v, tmpCls, key))
         return m
 
 
@@ -209,7 +212,7 @@ def model2Dict(data):
         return [model2Dict(item) for item in data]
     elif isinstance(data, object):
         dic = data.__dict__
-        dic.update({k: model2Dict(v) for k, v in dic.iteritems()})
+        dic.update({k: model2Dict(v) for k, v in dic.iteritems() if v != None})
         return dic
 
 
