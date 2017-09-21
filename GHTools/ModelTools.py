@@ -172,6 +172,8 @@ def toJson(data):
 
 
     # TODO : 处理类对应哪个属性缺失的情况。
+
+
 def dict2Model(data, clsType=None, key=None):
     """
     :type data: object | list[Any]| dict[str, str|object]
@@ -191,13 +193,14 @@ def dict2Model(data, clsType=None, key=None):
         return [dict2Model(item, tmpCls, None) for item in data]
     elif isinstance(data, dict):
         # if key and hasattr(clsType(), key):
-
-        tmpCls = getattr(clsType(), key) if key else clsType
+        tmpCls = getattr(clsType, key) if key else clsType
         m = tmpCls()
         for key, v in data.iteritems():
             if key in m.__dict__:
                 setattr(m, key, dict2Model(v, tmpCls, key))
         return m
+    else:
+        return data
 
 
 def model2Dict(data):
@@ -214,13 +217,15 @@ def model2Dict(data):
         dic = data.__dict__
         dic.update({k: model2Dict(v) for k, v in dic.iteritems() if v != None})
         return dic
+    else:
+        return data
 
 
 if __name__ == '__main__':
     # print getattr(A(), 'c')
     # print A().__dict__
     # print A.__dict__
-    a = toModel(j, A)
+    a = toModel(jj, A)
     # a = dict2Model(ll, C)
     b = toDict(a)
     print '****'
