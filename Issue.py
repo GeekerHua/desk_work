@@ -1,6 +1,4 @@
-
 class LabelsModel(object):
-
     def __init__(self):
         self.id = None
         self.url = None
@@ -26,8 +24,10 @@ class MilestoneModel(object):
         self.due_on = None
         self.closed_at = None
 
+
 class Issue(object):
     milestone = MilestoneModel
+
     def __init__(self, title=None, body=None, milestone=MilestoneModel, labels=[LabelsModel], state='open'):
         self.repository_url = None
         self.labels_url = None
@@ -47,14 +47,14 @@ class Issue(object):
 
     @property
     def labelsList(self):
-        return []# [item.name for item in self.labels]
+        return []  # [item.name for item in self.labels]
 
     def alfredItem(self):
         return {
             "valid": True,
             "title": self.title,
             "subtitle": self.body,
-            "quicklookurl": self.body, # self.html_url,
+            "quicklookurl": self.body,  # self.html_url,
             "arg": self.number,
             "autocomplete": self.title
         }
@@ -65,3 +65,39 @@ class Issue(object):
         tmpSql = ','.join(['"{k}" {v}'.format(k=k, v=v) for k, v in keysDict.items()])
         return 'CREATE TABLE  if not exists "T_issues" (' + tmpSql + ',PRIMARY KEY("id"))'
 
+    def openIssue(self):
+        pass
+
+    def closeIssue(self):
+        pass
+
+    def deailIssue(self):
+        return [
+            {
+                "valid": True,
+                "title": 'close',
+                "subtitle": 'close the issue',
+                "arg": 'close'
+                # "autocomplete": self.title
+            },
+            {
+                "valid": True,
+                "title": 'commit',
+                "subtitle": 'list commit of this issue',
+                "arg": 'commit'
+            },
+            {
+                "valid": True,
+                "title": 'milestone',
+                "subtitle": 'list milestone of this issue',
+                # "quicklookurl": self.body,  # self.html_url,
+                "arg": 'milestone'
+            },
+            {
+                "valid": True,
+                "title": 'label',
+                "subtitle": 'list labels of this issue',
+                # "quicklookurl": self.body,  # self.html_url,
+                "arg": 'label'
+            }
+        ]

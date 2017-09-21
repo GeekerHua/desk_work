@@ -141,7 +141,7 @@ class ModelError(Exception):
 def toModel(data, clsType):
     """
     将dict、json转成model
-    :rtype: object
+    :rtype: list[object] | object
     """
     if isinstance(data, basestring):  # json
         data = toDict(data)

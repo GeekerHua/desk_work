@@ -4,118 +4,23 @@
 """
 # 2017-09-19 15:39:29
 """
+from Model.Repo import Repo
 
 __author__ = 'geekerhua@sina.com'
 
 import argparse
 import json
-import os
-import urllib2
 
 from GHTools import ModelTools
 from Issue import Issue, MilestoneModel
-
-GitHub_Authorization = os.getenv('GitHub_Authorization')
-Repo_Name = os.getenv('Repo_Name')
-Owner_name = os.getenv('Owner_name')
-Base_Api = "https://api.github.com"
-
-
-class RESTful(object):
-    GET = 'GET'
-    POST = 'POST'
-    PATCH = 'PATCH'
-
-
-class Repo(object):
-    def __init__(self, name=None, id=None):
-        self.name = name
-        self.id = id
-        self.owner = Owner_name
-
-    def getAllIssues(self):
-        resp = requestApi(renderUrl("/repos/:owner/:repo/issues", repo=self.name, owner=self.owner))
-        if resp.code == 200:
-            return resp.read()
-        else:
-            return None
-
-    def repoInfo(self):
-        resp = requestApi(renderUrl('/repos/:owner/:repo', repo=self.name, owner=self.owner))
-        return resp
-
-    def addIssue(self, issue):
-        """
-        创建新的issue
-        :type issue: Issue
-        :rtype: response
-        """
-        data = {
-            "title": issue.title,
-            "body": issue.body,
-            "assignees": [self.owner],
-            "milestone": issue.milestone.id,
-            "labels": issue.labelsList
-        }
-        formData = json.dumps(data)
-        headers = {'Content-Type': 'application/json'}
-        resp = requestApi(renderUrl("/:repo/issues", repo=self.name), method=RESTful.POST, data=formData,
-                          headers=headers)
-        return resp.read()
-
-    def editIssue(self, issue):
-        """
-        修改issue
-        :type issue: Issue
-        :rtype: response
-        """
-        data = {
-            "title": issue.title,
-            "body": issue.body,
-            "assignees": [self.owner],
-            "milestone": issue.milestone.id,
-            "state": issue.state,
-            "labels": issue.labelsList
-        }
-        formData = json.dumps(data)
-        headers = {'Content-Type': 'application/json'}
-        resp = requestApi(
-            renderUrl('/repos/:owner/:repo/issues/:number', repo=self.name, number=issue.number, owner=Owner_name),
-            method=RESTful.PATCH,
-            data=formData, headers=headers)
-        return resp.read()
-
-
-def renderUrl(api, **kwargs):
-    for k, v in kwargs.iteritems():
-        api = api.replace(':' + k, v, 1)
-    url = Base_Api + api
-    return url
-
-
-def requestApi(url, method=RESTful.GET, data=None, headers={}):
-    """
-
-    :rtype: response.
-    """
-    defaultHeaders = {"Authorization": GitHub_Authorization}
-    headers.update(defaultHeaders)
-    request = urllib2.Request(url, headers=headers, data=data)
-    request.get_method = lambda: method
-    try:
-        return urllib2.urlopen(request)
-    except urllib2.HTTPError as e:
-        # TODO: 处理不同的code if e.code == 400:
-        print e, request.get_method(), url, headers, data
-        return None
 
 
 def getAllIssues(repoName):
     repo = Repo(repoName)
     result = repo.getAllIssues()
     if result:
-        r = ModelTools.toModel(result, Issue)
-        items = [item.alfredItem() for item in r]
+        issues = ModelTools.toModel(result, Issue)
+        items = [item.alfredItem() for item in issues]
         return json.dumps({"items": items})
 
 
@@ -161,6 +66,11 @@ if __name__ == '__main__':
     parser_b.add_argument('-r', '--repo', type=str, help='select a repo')
     parser_b.add_argument('-a', '--all', type=bool, help='all issue inclue closed')
 
+    parser_d = subparsers.add_parser('issue', help='contral issue')
+    parser_d.add_argument('-d', '--detail', type=int, help='detail this issue')
+    parser_d.add_argument('-r', '--repo', type=str, help='select a repo')
+
+
     args = parser.parse_args()
     # print vars(args)
     # exit(0)
@@ -191,5 +101,9 @@ if __name__ == '__main__':
             print(getAllIssues(repo))
         else:
             print('must have repo')
+    elif args.action == 'issue':
+        repo = args.repo
+        issueNo = args.detail
+        print 'TODO 需要先完成数据库，才能继续写' # TODO：数据库优先
     else:
         print('do not suppost thid action:{}'.format(args.action))
