@@ -10,9 +10,9 @@ __author__ = 'geekerhua@sina.com'
 
 import argparse
 import json
-
+from IssueManager import IssueManager
 from GHTools import ModelTools
-from Issue import Issue, MilestoneModel
+from Model.Issue import Issue, MilestoneModel
 
 
 def getAllIssues(repoName):
@@ -20,6 +20,8 @@ def getAllIssues(repoName):
     result = repo.getAllIssues()
     if result:
         issues = ModelTools.toModel(result, Issue)
+        # 更新数据库
+        IssueManager.updaeIssues(issues)
         items = [item.alfredItem() for item in issues]
         return json.dumps({"items": items})
 
