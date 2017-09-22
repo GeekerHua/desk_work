@@ -5,3 +5,4 @@
 # @File    : LabelsModel.py.py
 # @Software: PyCharm
 
+class
