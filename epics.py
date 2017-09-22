@@ -2,8 +2,8 @@
 import json
 import urllib2
 
-REPO_ID = 60256158
-ACCESS_TOKEN = "e29c52830150eef17d5ac38dc7eedb2ae3dd4433b7604e62c4a9e56a9b90706910d0916f52fad370"
+REPO_ID =
+ACCESS_TOKEN = ""
 
 def getResponse():
     url = "https://api.zenhub.io/p1/repositories/{REPO_ID}/epics".format(
