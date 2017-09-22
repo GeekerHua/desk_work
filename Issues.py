@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-import json
-import urllib2
 import sqlite3
+import urllib2
+
 import DBManager
-from Issue import Issue
+from Model.Issue import IssueModel
+
 REPO_ID = 60256158
 ACCESS_TOKEN = "e29c52830150eef17d5ac38dc7eedb2ae3dd4433b7604e62c4a9e56a9b90706910d0916f52fad370"
 
@@ -22,7 +23,8 @@ class IssueManager(object):
         (keys, values) = zip(*tmpdict.items())
         key = ','.join(keys)
         value = ','.join(['?' for i in range(len(values))])
-        sql = 'insert or replace into T_issues (%s) values (%s)'%(key, value)
+        sql = issue.sql_insert_data()
+        print sql
         # print tmpdict.items()
         cursor.execute(sql, values)
         cursor.close()
@@ -46,7 +48,7 @@ class IssueManager(object):
         conn = sqlite3.connect('sql.db')
         conn.text_factory = str
         cursor = conn.cursor()
-        keys = Issue().__dict__.keys()
+        keys = IssueModel().__dict__.keys()
         result = cursor.execute('select {keys} from T_issues'.format(keys=keys))
         print result.fetchone()
         # 2.数据库没有再去请求，放到异步去
@@ -54,7 +56,7 @@ class IssueManager(object):
         return result
 
     def getIssue(self, number):
-        issue = Issue()
+        issue = IssueModel()
         # 1.先查数据库
 
         # 2.数据库没有再去请求
