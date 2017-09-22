@@ -6,6 +6,7 @@
 # @Software: PyCharm
 from common.Util import NoAttributeError
 
+
 class SqlModel(object):
     tableName = None
     sql_columns = None

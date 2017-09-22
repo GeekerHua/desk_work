@@ -76,7 +76,6 @@ if __name__ == '__main__':
     parser_d.add_argument('-d', '--detail', type=int, help='detail this issue')
     parser_d.add_argument('-r', '--repo', type=str, help='select a repo')
 
-
     args = parser.parse_args()
     # print vars(args)
     # exit(0)
@@ -111,6 +110,6 @@ if __name__ == '__main__':
     elif args.action == 'issue':
         repo = args.repo
         issueNo = args.detail
-        print 'TODO 需要先完成数据库，才能继续写' # TODO：数据库优先
+        print 'TODO 需要先完成数据库，才能继续写'  # TODO：数据库优先
     else:
         print('do not suppost thid action:{}'.format(args.action))

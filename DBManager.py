@@ -23,14 +23,17 @@ def execSQL(action=SQLAction.execute):
                     cursor.executemany(sql, datas)
                 conn.commit()
             return 0
+
         return wrapper
+
     return decorator
 
 
 class DB(object):
     @staticmethod
     def detectionTable(tableName, cursor):
-        return cursor.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='%s';" % tableName).fetchone()[0]
+        return \
+        cursor.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='%s';" % tableName).fetchone()[0]
 
     @staticmethod
     @execSQL(SQLAction.create)

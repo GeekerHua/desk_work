@@ -12,11 +12,6 @@ from common.Util import SQLAction
 
 
 class IssueManager(object):
-    # def __init__(self):
-    # self.conn = sqlite3.connect('sql.db')
-    # self.conn.text_factory = str
-    # self.cursor = conn.cursor()
-
     @staticmethod
     def updateIssue(issue):
         conn = sqlite3.connect('sql.db')

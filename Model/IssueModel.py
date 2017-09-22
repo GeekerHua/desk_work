@@ -91,18 +91,3 @@ class IssueModel(SqlModel):
                 "arg": 'label'
             }
         ]
-
-    # @staticmethod
-    # @execSQL(SQLAction.executemany)
-    # def updaeIssues(issues):
-    #     return (IssueModel.sql_insert(), [tuple(issue.sql_update()) for issue in issues])
-        #
-        # conn = sqlite3.connect('sql.db')
-        # conn.text_factory = str
-        # cursor = conn.cursor()
-        # for issue in issues:
-        #     sql, args = issue.sql_update()
-        #     cursor.execute(sql, tuple(args))
-        # cursor.close()
-        # conn.commit()
-        # conn.close()
