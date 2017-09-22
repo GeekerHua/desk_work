@@ -10,3 +10,15 @@ class RESTful(object):
     POST = 'POST'
     PATCH = 'PATCH'
 
+
+class SQLAction(object):
+    insert = 'INSERT'
+    update = 'UPDATE'
+    execute = 'execute'
+    executemany = 'executemany'
+    create = 'create'
+
+
+
+class NoAttributeError(Exception):
+    pass

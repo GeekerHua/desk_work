@@ -3,31 +3,35 @@
 
 """
 # 2017-09-19 15:39:29
-"""
-from Model.Repo import Repo
-
 __author__ = 'geekerhua@sina.com'
-
+"""
 import argparse
 import json
+from DBManager import DB
+from Model.Repo import Repo
 from IssueManager import IssueManager
 from GHTools import ModelTools
-from Model.Issue import Issue, MilestoneModel
+from Model.IssueModel import IssueModel
+from Model.MilestoneModel import MilestoneModel
+from Model.LabelsModel import LabelsModel
 
 
 def getAllIssues(repoName):
     repo = Repo(repoName)
     result = repo.getAllIssues()
     if result:
-        issues = ModelTools.toModel(result, Issue)
+        issues = ModelTools.toModel(result, IssueModel)
         # 更新数据库
         IssueManager.updaeIssues(issues)
-        items = [item.alfredItem() for item in issues]
+        if isinstance(issues, list):
+            items = [item.alfredItem() for item in issues]
+        else:
+            items = issues.alfredItem()
         return json.dumps({"items": items})
 
 
 def addIssue(repoName, title, body=None):
-    issue = Issue(title, body, MilestoneModel())
+    issue = IssueModel(title, body, MilestoneModel())
     repo = Repo(repoName)
     result = repo.addIssue(issue)
     if result:
@@ -35,7 +39,7 @@ def addIssue(repoName, title, body=None):
 
 
 def editIssue(repoName, issueNo, title, body=None):
-    issue = Issue(title, body, MilestoneModel())
+    issue = IssueModel(title, body, MilestoneModel())
     issue.number = issueNo
     repo = Repo(repoName)
     result = repo.editIssue(issue)
@@ -83,6 +87,7 @@ if __name__ == '__main__':
     # add: python app.py add add -t title -b body
     # edit: python app.py edit edit -n 15 -s open -t title -b body
     # list: python app.py list list -r ropo -a true
+    DB.createTables(IssueModel, LabelsModel, MilestoneModel)
     if args.action in ['add', 'edit']:
         repo = args.repo
         title = args.title

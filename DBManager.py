@@ -1,71 +1,42 @@
 # coding=utf-8
 import sqlite3
 
-T_IssueSql = """
-CREATE TABLE T_Issue  \
-(
-    id INT PRIMARY KEY,
-    url TEXT,
-    labels_url TEXT,
-    comments_url TEXT,
-    html_url TEXT,
-    number INT,
-    title TEXT,
-    state TEXT DEFAULT 'open',
-    locked BLOB DEFAULT FALSE,
-    milestone_id INT,
-    milestone_no INT,
-    body TEXT
-)
-"""
-
-T_LabelSql = """
-CREATE TABLE T_label \
-(
-    id INT PRIMARY KEY,
-    url TEXT,
-    name TEXT,
-    color TEXT,
-    "default" BLOB DEFAULT FALSE
-)
-"""
-
-T_MilestoneSql = """
-CREATE TABLE T_Milestone  \
-(
-    id INT PRIMARY KEY,
-    url TEXT,
-    html_url TEXT,
-    labels_url TEXT,
-    number INT,
-    title TEXT,
-    description TEXT,
-    open_issues INT,
-    close_issues INT,
-    state TEXT DEFAULT 'open',
-    create_at TEXT,
-    updated_at TEXT
-)
-"""
-
-def detectionTable(tableName, conn):
-    return conn.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='%s';" % tableName).fetchone()[
-        0]
+from Model import LabelsModel
+from Model.IssueModel import IssueModel
+from Model.MilestoneModel import MilestoneModel
+from common.Util import SQLAction
 
 
-def createDB():
-    conn = sqlite3.connect('sql.db')
-    conn.text_factory = str
-    c = conn.cursor()
-    if not detectionTable('T_Issue', conn):
-        c.execute(T_IssueSql)
-    if not detectionTable('T_Label', conn):
-        c.execute(T_LabelSql)
-    if not detectionTable('T_Milestone', conn):
-        c.execute(T_MilestoneSql)
-    conn.commit()
-    conn.close()
+def execSQL(action=SQLAction.execute):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            with sqlite3.connect('sql.db') as conn:
+                conn.text_factory = str
+                cursor = conn.cursor()
+                if action == SQLAction.create:
+                    for tableName, sqlstr in func(*args, **kwargs):
+                        if not DB.detectionTable(tableName, cursor):
+                            cursor.execute(sqlstr)
+                elif action == SQLAction.executemany:
+                    sql, datas = func(*args, **kwargs)
+                    print datas.next()
+                    cursor.executemany(sql, datas)
+                conn.commit()
+            return 0
+        return wrapper
+    return decorator
+
+
+class DB(object):
+    @staticmethod
+    def detectionTable(tableName, cursor):
+        return cursor.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='%s';" % tableName).fetchone()[0]
+
+    @staticmethod
+    @execSQL(SQLAction.create)
+    def createTables(*args):
+        return [(modelCls.tableName, modelCls.sql_create()) for modelCls in args]
 
 
 if __name__ == '__main__':
-    createDB()
+    print DB.createTables(IssueModel, LabelsModel, MilestoneModel)

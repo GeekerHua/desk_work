@@ -7,6 +7,8 @@
 import sqlite3
 
 import DBManager
+from Model.IssueModel import IssueModel
+from common.Util import SQLAction
 
 
 class IssueManager(object):
@@ -20,30 +22,13 @@ class IssueManager(object):
         conn = sqlite3.connect('sql.db')
         conn.text_factory = str
         cursor = conn.cursor()
-        tmpdict = issue.__dict__
-        (keys, values) = zip(*tmpdict.items())
-        key = ','.join(keys)
-        value = ','.join(['?' for i in range(len(values))])
-        sql = issue.updateSql()
-        print sql
-        cursor.execute(sql, values)
+        sql, args = issue.sql_insert_data()
+        cursor.execute(sql, args)
         cursor.close()
         conn.commit()
         conn.close()
 
     @staticmethod
+    @DBManager.execSQL(SQLAction.executemany)
     def updaeIssues(issues):
-        conn = sqlite3.connect('sql.db')
-        conn.text_factory = str
-        cursor = conn.cursor()
-        for issue in issues:
-            # tmpdict = issue.__dict__
-            # (keys, values) = zip(*tmpdict.items())
-            # key = ','.join(keys)
-            # value = ','.join(['?' for i in range(len(values))])
-            sql = issue.updateSql()
-            print sql
-            cursor.execute(sql)
-        cursor.close()
-        conn.commit()
-        conn.close()
+        return IssueModel.sql_insert(), (issue.sql_insert_data() for issue in issues)

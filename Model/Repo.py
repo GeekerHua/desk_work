@@ -8,7 +8,7 @@
 import json
 import os
 
-from Issue import Issue
+from Model.IssueModel import IssueModel
 from common.NetManager import renderUrl, requestApi
 from common.Util import RESTful
 
@@ -36,7 +36,7 @@ class Repo(object):
     def addIssue(self, issue):
         """
         创建新的issue
-        :type issue: Issue
+        :type issue: IssueModel
         :rtype: response
         """
         data = {
@@ -55,7 +55,7 @@ class Repo(object):
     def editIssue(self, issue):
         """
         修改issue
-        :type issue: Issue
+        :type issue: IssueModel
         :rtype: response
         """
         data = {

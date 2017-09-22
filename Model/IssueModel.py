@@ -1,32 +1,28 @@
-class LabelsModel(object):
-    def __init__(self):
-        self.id = None
-        self.url = None
-        self.name = None
-        self.color = None
-        self.default = None
+import sqlite3
+
+from Model.LabelsModel import LabelsModel
+from Model.MilestoneModel import MilestoneModel
+from Model.SqlModel import SqlModel
 
 
-class MilestoneModel(object):
-    def __init__(self):
-        self.url = None
-        self.html_url = None
-        self.labels_url = None
-        self.id = None
-        self.number = None
-        self.title = None
-        self.description = None
-        self.open_issues = None
-        self.closed_issues = None
-        self.state = None
-        self.created_at = None
-        self.updated_at = None
-        self.due_on = None
-        self.closed_at = None
-
-
-class Issue(object):
+class IssueModel(SqlModel):
     milestone = MilestoneModel
+    tableName = 'T_Issue'
+
+    sql_columns = [
+        ('id', 'INT', 'PRIMARY KEY'),
+        ('url', 'TEXT'),
+        ('labels_url', 'TEXT'),
+        ('comments_url', 'TEXT'),
+        ('html_url', 'TEXT'),
+        ('number', 'INT'),
+        ('title', 'TEXT'),
+        ('state', 'TEXT', "DEFAULT 'open'"),
+        ('locked', 'BLOB', "DEFAULT FALSE"),
+        ('milestone_id', 'INT'),
+        ('milestone_no', 'INT'),
+        ('body', 'TEXT'),
+    ]
 
     def __init__(self, title=None, body=None, milestone=MilestoneModel, labels=[LabelsModel], state='open'):
         self.repository_url = None
@@ -58,12 +54,6 @@ class Issue(object):
             "arg": self.number,
             "autocomplete": self.title
         }
-
-    @classmethod
-    def getCreateSql(cls):
-        keysDict = cls().__dict__
-        tmpSql = ','.join(['"{k}" {v}'.format(k=k, v=v) for k, v in keysDict.items()])
-        return 'CREATE TABLE  if not exists "T_issues" (' + tmpSql + ',PRIMARY KEY("id"))'
 
     def openIssue(self):
         pass
@@ -101,3 +91,18 @@ class Issue(object):
                 "arg": 'label'
             }
         ]
+
+    # @staticmethod
+    # @execSQL(SQLAction.executemany)
+    # def updaeIssues(issues):
+    #     return (IssueModel.sql_insert(), [tuple(issue.sql_update()) for issue in issues])
+        #
+        # conn = sqlite3.connect('sql.db')
+        # conn.text_factory = str
+        # cursor = conn.cursor()
+        # for issue in issues:
+        #     sql, args = issue.sql_update()
+        #     cursor.execute(sql, tuple(args))
+        # cursor.close()
+        # conn.commit()
+        # conn.close()
