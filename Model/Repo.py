@@ -11,6 +11,7 @@ import os
 from Model.IssueModel import IssueModel
 from common.NetManager import renderUrl, requestApi
 from common.Util import RESTful
+import logging
 
 Repo_Name = os.getenv('Repo_Name')
 Owner_name = os.getenv('Owner_name')
@@ -22,12 +23,28 @@ class Repo(object):
         self.id = ID
         self.owner = Owner_name
 
-    def getAllIssues(self):
+    def getAllIssuesFromDB(self):
+        logging.info('Start get all Issues from DB')
+        result = IssueModel.queryIssues()
+        if result:
+            return result
+
+    def getAllISSuesFromNet(self):
+        logging.info('Start request all Issues')
         resp = requestApi(renderUrl("/repos/:owner/:repo/issues", repo=self.name, owner=self.owner))
         if resp.code == 200:
             return resp.read()
         else:
+            logging.warning('request all Issues failed code = %d, message = ', resp.code, resp.message)
             return None
+
+    def getAllIssues(self):
+        # 先从db获取，再从网络获取。
+        result = self.getAllIssuesFromDB()
+        if result:
+            return result
+        else:
+            return self.getAllISSuesFromNet()
 
     def repoInfo(self):
         resp = requestApi(renderUrl('/repos/:owner/:repo', repo=self.name, owner=self.owner))

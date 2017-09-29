@@ -17,8 +17,15 @@ class SQLAction(object):
     execute = 'execute'
     executemany = 'executemany'
     create = 'create'
+    queryAll = 'queryAll'
 
 
 
 class NoAttributeError(Exception):
+    pass
+
+class NoRepoError(Exception):
+    pass
+
+class WrapperMethodError(Exception):
     pass

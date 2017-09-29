@@ -9,24 +9,25 @@ import argparse
 import json
 from DBManager import DB
 from Model.Repo import Repo
-from IssueManager import IssueManager
 from GHTools import ModelTools
 from Model.IssueModel import IssueModel
 from Model.MilestoneModel import MilestoneModel
 from Model.LabelsModel import LabelsModel
-
+import logging
+from common.Util import NoRepoError
 
 def getAllIssues(repoName):
     repo = Repo(repoName)
     result = repo.getAllIssues()
     if result:
-        issues = ModelTools.toModel(result, IssueModel)
+        issueData = ModelTools.toModel(result, IssueModel)
         # 更新数据库
-        IssueManager.updaeIssues(issues)
-        if isinstance(issues, list):
-            items = [item.alfredItem() for item in issues]
+        IssueModel.updaeIssues(issueData)
+        logging.debug('Start generate alfred data %s', str(issueData))
+        if isinstance(issueData, list):
+            items = [item.alfredItem() for item in issueData]
         else:
-            items = issues.alfredItem()
+            items = issueData.alfredItem()
         return json.dumps({"items": items})
 
 
@@ -50,6 +51,7 @@ def editIssue(repoName, issueNo, title, body=None):
 
 if __name__ == '__main__':
 
+    logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(message)s')
     parser = argparse.ArgumentParser()
     parser.add_argument('action', help='action help')
     subparsers = parser.add_subparsers(help='sub-command help')
@@ -100,13 +102,14 @@ if __name__ == '__main__':
             else:  # edit
                 print(editIssue(repo, issueNo, title, body))
         else:
-            print('must have repo and title')
+            raise NoRepoError('must have repo and title')
     elif args.action == 'list':
         repo = args.repo
         if repo:
+            logging.info('Start get all issues from repo %s', repo)
             print(getAllIssues(repo))
         else:
-            print('must have repo')
+            raise NoRepoError('must have repo')
     elif args.action == 'issue':
         repo = args.repo
         issueNo = args.detail

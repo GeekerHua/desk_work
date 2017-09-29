@@ -1,8 +1,10 @@
 import sqlite3
 
+from DBManager import execSQL
 from Model.LabelsModel import LabelsModel
 from Model.MilestoneModel import MilestoneModel
 from Model.SqlModel import SqlModel
+from common.Util import SQLAction
 
 
 class IssueModel(SqlModel):
@@ -40,6 +42,19 @@ class IssueModel(SqlModel):
         self.labels = [LabelsModel]
         self.milestone = milestone
         self.assignee_id = 'INTEGER'
+
+    # def __repr__(self):
+    #     return vars(self)
+
+    @staticmethod
+    @execSQL(SQLAction.executemany)
+    def updaeIssues(issues):
+        return IssueModel.sql_insert_str(), (issue.sql_insert_data() for issue in issues)
+
+    @classmethod
+    @execSQL(SQLAction.queryAll)
+    def queryIssues(cls, *queryColumns, **queryKeys):
+        return IssueModel.sql_query(*queryColumns, **queryKeys)
 
     @property
     def labelsList(self):

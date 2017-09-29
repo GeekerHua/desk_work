@@ -8,6 +8,7 @@ import os
 import urllib2
 
 from common.Util import RESTful
+import logging
 
 Base_Api = "https://api.github.com"
 
@@ -24,13 +25,15 @@ def renderUrl(api, **kwargs):
     return url
 
 
-def requestApi(url, method=RESTful.GET, data=None, headers={}):
+def requestApi(url, method=RESTful.GET, data=None, headers=None):
     """
 
     :rtype: response.
     """
     defaultHeaders = {"Authorization": os.getenv('GitHub_Authorization')}
+    headers = headers or {}
     headers.update(defaultHeaders)
+    logging.info('request url %s, %s, headers = %s, data = %s', method, url, str(headers), data or 'None')
     request = urllib2.Request(url, headers=headers, data=data)
     request.get_method = lambda: method
     try:
