@@ -7,7 +7,9 @@
 
 import json
 import os
-
+import threading
+from multiprocessing import Process
+from GHTools import ModelTools
 from Model.IssueModel import IssueModel
 from common.NetManager import renderUrl, requestApi
 from common.Util import RESTful
@@ -30,21 +32,41 @@ class Repo(object):
             return result
 
     def getAllISSuesFromNet(self):
-        logging.info('Start request all Issues')
-        resp = requestApi(renderUrl("/repos/:owner/:repo/issues", repo=self.name, owner=self.owner))
+        logging.info('Start request and refresh all Issues ')
+        resp = requestApi(renderUrl("/repos/:owner/:repo/issues", params={'state': 'all'}, repo=self.name, owner=self.owner))
         if resp.code == 200:
-            return resp.read()
+            result = resp.read()
+            issueData = ModelTools.toModel(result, IssueModel)
+            IssueModel.updaeIssues(issueData)
+            return issueData
         else:
-            logging.warning('request all Issues failed code = %d, message = ', resp.code, resp.message)
+            logging.warning('request and refresh all Issues failed code = %d, message = ', resp.code, resp.message)
             return None
 
     def getAllIssues(self):
         # 先从db获取，再从网络获取。
         result = self.getAllIssuesFromDB()
+        # p = Process(target=self.getAllISSuesFromNet)
+        # p.start()
+        # p.join()  # 不需要等待子进程结束，也不行，还是会等待，否则会直接报错。
+
+        ## ====== 多线程，有问题，只有子线程执行完毕，程序才能结束，这时候print的结果才会显示在Alfred中，实际上不需要等待子线程，因此换成进程
+        # t = threading.Thread(target=self.getAllISSuesFromNet)
+        # t.start()
+        ## ====== 多线程 end
+
+        issueData = ModelTools.toModel(result, IssueModel)
+        IssueModel.updaeIssues(issueData)
+        return issueData
+
+    def queryIssue(self, issueId):
+        """
+
+        :rtype: IssueModel
+        """
+        result = IssueModel.queryIssues(id=issueId)
         if result:
-            return result
-        else:
-            return self.getAllISSuesFromNet()
+            return result[0]
 
     def repoInfo(self):
         resp = requestApi(renderUrl('/repos/:owner/:repo', repo=self.name, owner=self.owner))

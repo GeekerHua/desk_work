@@ -1,6 +1,4 @@
-import sqlite3
-
-from DBManager import execSQL
+from GHTools.DBManager import execSQL
 from Model.LabelsModel import LabelsModel
 from Model.MilestoneModel import MilestoneModel
 from Model.SqlModel import SqlModel
@@ -26,7 +24,7 @@ class IssueModel(SqlModel):
         ('body', 'TEXT'),
     ]
 
-    def __init__(self, title=None, body=None, milestone=MilestoneModel, labels=[LabelsModel], state='open'):
+    def __init__(self, title=None, body=None):
         self.repository_url = None
         self.labels_url = None
         self.events_url = None
@@ -40,8 +38,11 @@ class IssueModel(SqlModel):
         self.url = 'TEXT'
 
         self.labels = [LabelsModel]
-        self.milestone = milestone
+        self.milestone = MilestoneModel
         self.assignee_id = 'INTEGER'
+
+    def oppositeState(self):
+        return 'open' if self.state == 'closed' else 'closed'
 
     # def __repr__(self):
     #     return vars(self)
@@ -49,7 +50,8 @@ class IssueModel(SqlModel):
     @staticmethod
     @execSQL(SQLAction.executemany)
     def updaeIssues(issues):
-        return IssueModel.sql_insert_str(), (issue.sql_insert_data() for issue in issues)
+        result = IssueModel.sql_insert_str(), [issue.sql_insert_data() for issue in issues]
+        return result
 
     @classmethod
     @execSQL(SQLAction.queryAll)
@@ -61,13 +63,25 @@ class IssueModel(SqlModel):
         return []  # [item.name for item in self.labels]
 
     def alfredItem(self):
+        toState = 'close' if self.state == 'open' else 'open'
+        icon = self.state
         return {
             "valid": True,
             "title": self.title,
             "subtitle": self.body,
             "quicklookurl": self.body,  # self.html_url,
-            "arg": self.number,
-            "autocomplete": self.title
+            "arg": self.id,
+            "autocomplete": self.title,
+            "icon": {
+                "path": "./icon/{}.png".format(icon)
+            },
+            "mods": {
+                "cmd": {
+                    "valid": True,
+                    "arg": self.id,
+                    "subtitle": "{} this issue".format(toState)
+                },
+            },
         }
 
     def openIssue(self):

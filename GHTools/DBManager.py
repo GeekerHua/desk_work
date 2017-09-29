@@ -18,15 +18,16 @@ def execSQL(action=SQLAction.execute):
             with sqlite3.connect('sql.db') as conn:
                 conn.text_factory = str
                 cursor = conn.cursor()
+                result = 0
                 if action == SQLAction.create:
                     for tableName, sqlstr in func(*args, **kwargs):
                         if not DB.detectionTable(tableName, cursor):
                             cursor.execute(sqlstr)
                 elif action == SQLAction.executemany:
                     sqlstr, datas = func(*args, **kwargs)
-                    logging.debug('Start update sql %s data = %s', sqlstr, str(list(datas)))
-                    cursor.executemany(sqlstr, datas)
-                    logging.info('exec sql success')
+                    logging.debug('Start update sql %s data = %s', sqlstr, str(datas))
+                    result = cursor.executemany(sqlstr, datas)
+                    logging.info('exec sql success result = {}'.format(result))
                 elif action == SQLAction.queryAll:
                     sqlstr, datas, colums = func(*args, **kwargs)
                     clsM = args[0]
@@ -43,11 +44,9 @@ def execSQL(action=SQLAction.execute):
                             for k, v in zip(colums, item):
                                 setattr(model, k, v)
                             ls.append(model)
-                        return ls
-                    else:
-                        return result
+                        result = ls
                 conn.commit()
-            return 0
+            return result
 
         return wrapper
 

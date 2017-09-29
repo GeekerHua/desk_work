@@ -13,15 +13,17 @@ import logging
 Base_Api = "https://api.github.com"
 
 
-def renderUrl(api, **kwargs):
+def renderUrl(api, params=None, **kwargs):
     """
     根据api和路径参数生成url
     :type api: str
     :rtype: str
     """
     for k, v in kwargs.iteritems():
-        api = api.replace(':' + k, v, 1)
+        api = api.replace(':' + k, str(v), 1)
     url = Base_Api + api
+    if params:
+        url += '?' + '&'.join(['{}={}'.format(k,v) for k,v in params.iteritems()])
     return url
 
 

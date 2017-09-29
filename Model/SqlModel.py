@@ -19,13 +19,14 @@ class SqlModel(object):
     def sql_insert_str(cls):
         columns = ','.join(cls._sql_columns())
         placeholders = ','.join(map(lambda x: '?', cls.sql_columns))
-        sql = "INSERT or REPLACE INTO {tableName} ({columns}) VALUES ({placeholders})".format(tableName=cls.tableName,
+        sql = "INSERT OR REPLACE into {tableName} ({columns}) VALUES ({placeholders});".format(tableName=cls.tableName,
                                                                                               columns=columns,
                                                                                               placeholders=placeholders)
         return sql
 
     def sql_insert_data(self):
-        return tuple(map(lambda x: getattr(self, x[0]) if hasattr(self, x[0]) else None, self.sql_columns))
+        result = tuple(map(lambda x: getattr(self, x[0]) if hasattr(self, x[0]) else None, self.sql_columns))
+        return result
 
     @classmethod
     def sql_query(cls, *queryColumns, **queryKeys):

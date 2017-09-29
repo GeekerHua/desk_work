@@ -18,6 +18,7 @@ class SQLAction(object):
     executemany = 'executemany'
     create = 'create'
     queryAll = 'queryAll'
+    queryOne = 'queryOne'
 
 
 

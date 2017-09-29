@@ -7,22 +7,25 @@ __author__ = 'geekerhua@sina.com'
 """
 import argparse
 import json
-from DBManager import DB
-from Model.Repo import Repo
-from GHTools import ModelTools
-from Model.IssueModel import IssueModel
-from Model.MilestoneModel import MilestoneModel
-from Model.LabelsModel import LabelsModel
 import logging
+
+from GHTools import ModelTools
+from GHTools.DBManager import DB
+from Model.IssueModel import IssueModel
+from Model.LabelsModel import LabelsModel
+from Model.MilestoneModel import MilestoneModel
+from Model.Repo import Repo
 from common.Util import NoRepoError
+
+
+def refreshAllIssues(repoName):
+    repo = Repo(repoName)
+    repo.getAllISSuesFromNet()
 
 def getAllIssues(repoName):
     repo = Repo(repoName)
-    result = repo.getAllIssues()
-    if result:
-        issueData = ModelTools.toModel(result, IssueModel)
-        # 更新数据库
-        IssueModel.updaeIssues(issueData)
+    issueData = repo.getAllIssues()
+    if issueData:
         logging.debug('Start generate alfred data %s', str(issueData))
         if isinstance(issueData, list):
             items = [item.alfredItem() for item in issueData]
@@ -32,7 +35,8 @@ def getAllIssues(repoName):
 
 
 def addIssue(repoName, title, body=None):
-    issue = IssueModel(title, body, MilestoneModel())
+    issue = IssueModel(title, body)
+    issue.milestone = MilestoneModel()
     repo = Repo(repoName)
     result = repo.addIssue(issue)
     if result:
@@ -40,12 +44,24 @@ def addIssue(repoName, title, body=None):
 
 
 def editIssue(repoName, issueNo, title, body=None):
-    issue = IssueModel(title, body, MilestoneModel())
+    issue = IssueModel(title, body)
+    issue.milestone = MilestoneModel()
     issue.number = issueNo
     repo = Repo(repoName)
     result = repo.editIssue(issue)
     if result:
         # 成功了，保存到数据库，替换旧数据。
+        return 0
+
+def changeIssueState(issueId, repoName):
+    repo = Repo(repoName)
+    issue = repo.queryIssue(issueId)
+    issue.state = issue.oppositeState()
+    issue.milestone = MilestoneModel()
+    result = repo.editIssue(issue)
+    print result
+    if result:
+        IssueModel.updaeIssues([issue])
         return 0
 
 
@@ -73,10 +89,12 @@ if __name__ == '__main__':
     # parser_b.add_argument('-l', '--list', help='list all issues')
     parser_b.add_argument('-r', '--repo', type=str, help='select a repo')
     parser_b.add_argument('-a', '--all', type=bool, help='all issue inclue closed')
+    parser_b.add_argument('-s', '--source', type=str, help='source of issues: net/db')
 
     parser_d = subparsers.add_parser('issue', help='contral issue')
-    parser_d.add_argument('-d', '--detail', type=int, help='detail this issue')
+    parser_d.add_argument('-m', '--mode', type=str, help='mode of the issue,detail/state')
     parser_d.add_argument('-r', '--repo', type=str, help='select a repo')
+    parser_d.add_argument('-i', '--id', type=int, help='the id of the issue')
 
     args = parser.parse_args()
     # print vars(args)
@@ -105,14 +123,20 @@ if __name__ == '__main__':
             raise NoRepoError('must have repo and title')
     elif args.action == 'list':
         repo = args.repo
+        source = args.source
         if repo:
             logging.info('Start get all issues from repo %s', repo)
-            print(getAllIssues(repo))
+            if source == 'db':
+                print(getAllIssues(repo))
+            elif source == 'net':
+                refreshAllIssues(repo)
         else:
             raise NoRepoError('must have repo')
     elif args.action == 'issue':
-        repo = args.repo
-        issueNo = args.detail
-        print 'TODO 需要先完成数据库，才能继续写'  # TODO：数据库优先
+        repoName = args.repo
+        issueId = args.id
+        mode = args.mode
+        if mode == 'state':
+            changeIssueState(issueId, repoName)
     else:
         print('do not suppost thid action:{}'.format(args.action))
